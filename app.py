@@ -111,10 +111,7 @@ elif st.session_state.page == "Prediksi":
             col1.metric(label="📈 Mean Absolute Error (MAE)", value=f"{mae:.2f}")
             col2.metric(label="🎯 Root Mean Squared Error (RMSE)", value=f"{rmse:.2f}")
             
-            st.info("""
-            **MAE:** Rata-rata selisih absolut antara prediksi dan nilai aktual. Semakin mendekati 0, semakin baik.
-            **RMSE:** Mirip dengan MAE tetapi memberikan bobot lebih pada kesalahan yang besar. Semakin mendekati 0, semakin baik.
-            """)
+
             # --- AKHIR PENAMBAHAN ---
             
             st.subheader("Grafik Perbandingan Prediksi vs Aktual")
