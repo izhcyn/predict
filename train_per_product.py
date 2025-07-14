@@ -16,8 +16,6 @@ df['WeekStart'] = pd.to_datetime(df['WeekStart'])
 correlation_matrix = df.corr(numeric_only=True)
 jumlah_terjual_correlation = correlation_matrix['JumlahTerjual'].abs().sort_values(ascending=False)
 selected_features = jumlah_terjual_correlation[jumlah_terjual_correlation >= 0.4].index.tolist()
-if 'JumlahTerjual' in selected_features:
-    selected_features.remove('JumlahTerjual')
 
 # Simpan selected features
 with open('models/selected_features.pkl', 'wb') as f:

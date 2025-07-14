@@ -148,12 +148,28 @@ elif st.session_state.page == "Forecasting":
             date = df_product['WeekStart'].max()
             dates = []
             for _ in range(steps):
+                # Prediksi dari model
                 y_pred_scaled = model.predict(np.expand_dims(current_seq, axis=0))
                 y_pred = target_scaler.inverse_transform(y_pred_scaled)[0][0]
+                
+                # Simpan hasil forecast ke list
                 future.append(int(round(y_pred)))
-                current_seq = np.vstack((current_seq[1:], current_seq[-1]))
+                
+                # Ambil baris terakhir dari sequence sebagai dasar
+                new_row = current_seq[-1].copy()
+                
+                # Ganti nilai fitur JumlahTerjual dengan hasil prediksi yang sudah diskalakan
+                y_pred_scaled_for_input = target_scaler.transform([[y_pred]])[0][0]
+                new_row[selected_features.index("JumlahTerjual")] = y_pred_scaled_for_input
+                
+                # Update sequence
+                current_seq = np.vstack((current_seq[1:], new_row))
+                
+                # Tambah tanggal
                 date += timedelta(days=7)
                 dates.append(date)
+
+            # Buat dataframe hasil forecast
             df_result = pd.DataFrame({"Tanggal": dates, "Forecast": future})
             st.dataframe(df_result)
         else:
