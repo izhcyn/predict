@@ -60,11 +60,10 @@ if st.session_state.page == "Homepage":
             "sehingga dapat mengakibatkan stok barang yang tidak seimbang serta keputusan pemasaran yang kurang efektif "
             "dengan model prediksi toko 'Antianshop' ini diharapkan dapat membantu pelaku bisnis dalam mengoptimalkan strategi penjualan, "
             "mengetahui faktor yang mempengaruhi penjualan serta mengelola stok produk berdasarkan prediksi penjualannya. ")
-
-    st.info("Data diperoleh dari Shopee Seller Centre")    
+   
     st.subheader("Dataset")
-    st.write("Data penjualan perminggu dari toko “antianshop” di Shopee selama 2 tahun mulai dari tanggal 22 Mei 2023 sampai 25 Mei 2025  "
-            "dengan jumlah baris 5425 dan jumlah kolom 29.")
+    st.info("Data bisa menggunakan data peforma penjualan dari toko shopee lain dengan kolom yang sama") 
+    st.write("Kolom yang digunakan yaitu KodeProduk, NamaProduk, Variasi, Kunjungan, HalamanDilihat, TanpaBeli, KlikSearch, Suka, TambahKeranjang, MasukKeranjang, JumlahTerjual, Penjualan, Waktu, Harga, Rating, dan KlikIklan")
     st.write(df)
     st.subheader("Penjelasan Aplikasi")
     st.write("""
