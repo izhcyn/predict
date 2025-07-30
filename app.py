@@ -62,7 +62,7 @@ if st.session_state.page == "Homepage":
             "mengetahui faktor yang mempengaruhi penjualan serta mengelola stok produk berdasarkan prediksi penjualannya. ")
    
     st.subheader("Dataset")
-    st.info("Data bisa menggunakan data peforma penjualan dari toko shopee lain dengan kolom yang sama") 
+    st.info("Anda dapat menggunakan data performa penjualan dari toko Shopee manapun, selama struktur kolomnya sesuai.") 
     st.write("Kolom yang digunakan yaitu KodeProduk, NamaProduk, Variasi, Kunjungan, HalamanDilihat, TanpaBeli, KlikSearch, Suka, TambahKeranjang, MasukKeranjang, JumlahTerjual, Penjualan, Waktu, Harga, Rating, dan KlikIklan")
     st.write(df)
     st.subheader("Penjelasan Aplikasi")
