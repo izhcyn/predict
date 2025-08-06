@@ -127,6 +127,56 @@ elif st.session_state.page == "Prediksi":
     else:
         st.warning("Data historis produk ini tidak cukup untuk melakukan prediksi (kurang dari 11 minggu).")
 # === FORECASTING ===
+elif st.session_state.page == "Forecasting":
+    st.title("Forecasting Mingguan ke Depan")
+
+    selected_label = st.selectbox("Pilih Produk", list(produk_map.keys()), key="forecast")
+    selected_code = produk_map[selected_label]
+    steps = st.slider("Forecast berapa minggu ke depan?", 1, 12, 4)
+
+    df_product = df[df['KodeProduk'] == selected_code].copy()
+    nama_produk = df_product['NamaProduk'].iloc[0] if 'NamaProduk' in df_product.columns else "Nama Tidak Diketahui"
+    st.write(f"**Nama Produk:** {nama_produk}")
+    if len(df_product) >= 11:
+        model_path = f"models/model_{selected_code}.h5"
+        if os.path.exists(model_path):
+            model = load_model(model_path)
+            X = feature_scaler.transform(df_product[selected_features])
+            current_seq = X[-10:]
+            future = []
+            date = df_product['WeekStart'].max()
+            dates = []
+            for _ in range(steps):
+                # Prediksi dari model
+                y_pred_scaled = model.predict(np.expand_dims(current_seq, axis=0))
+                y_pred = target_scaler.inverse_transform(y_pred_scaled)[0][0]
+                
+                # Simpan hasil forecast ke list
+                future.append(int(round(y_pred)))
+                
+                # Ambil baris terakhir dari sequence sebagai dasar
+                new_row = current_seq[-1].copy()
+                
+                # Ganti nilai fitur JumlahTerjual dengan hasil prediksi yang sudah diskalakan
+                y_pred_scaled_for_input = target_scaler.transform([[y_pred]])[0][0]
+                new_row[selected_features.index("JumlahTerjual")] = y_pred_scaled_for_input
+                
+                # Update sequence
+                current_seq = np.vstack((current_seq[1:], new_row))
+                
+                # Tambah tanggal
+                date += timedelta(days=7)
+                dates.append(date)
+
+            # Buat dataframe hasil forecast
+            df_result = pd.DataFrame({"Tanggal": dates, "Forecast": future})
+            st.dataframe(df_result)
+        else:
+            st.error("Model tidak ditemukan.")
+    else:
+        st.warning("Data belum cukup panjang.")
+
+# === STRATEGI ===
 elif st.session_state.page == "Strategi":
     st.title("📦 Strategi Pengelolaan Stok Produk Minggu Depan")
 
@@ -174,4 +224,3 @@ elif st.session_state.page == "Strategi":
             {i+1}. {kode} - {nama} <br> 📉 Prediksi Penjualan: {int(round(val))} produk<br>
             🛒 <b>Rekomendasi:</b> {rekomendasi}
             """, unsafe_allow_html=True)
-
