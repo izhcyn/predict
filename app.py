@@ -127,63 +127,14 @@ elif st.session_state.page == "Prediksi":
     else:
         st.warning("Data historis produk ini tidak cukup untuk melakukan prediksi (kurang dari 11 minggu).")
 # === FORECASTING ===
-elif st.session_state.page == "Forecasting":
-    st.title("Forecasting Mingguan ke Depan")
-
-    selected_label = st.selectbox("Pilih Produk", list(produk_map.keys()), key="forecast")
-    selected_code = produk_map[selected_label]
-    steps = st.slider("Forecast berapa minggu ke depan?", 1, 12, 4)
-
-    df_product = df[df['KodeProduk'] == selected_code].copy()
-    nama_produk = df_product['NamaProduk'].iloc[0] if 'NamaProduk' in df_product.columns else "Nama Tidak Diketahui"
-    st.write(f"**Nama Produk:** {nama_produk}")
-    if len(df_product) >= 11:
-        model_path = f"models/model_{selected_code}.h5"
-        if os.path.exists(model_path):
-            model = load_model(model_path)
-            X = feature_scaler.transform(df_product[selected_features])
-            current_seq = X[-10:]
-            future = []
-            date = df_product['WeekStart'].max()
-            dates = []
-            for _ in range(steps):
-                # Prediksi dari model
-                y_pred_scaled = model.predict(np.expand_dims(current_seq, axis=0))
-                y_pred = target_scaler.inverse_transform(y_pred_scaled)[0][0]
-                
-                # Simpan hasil forecast ke list
-                future.append(int(round(y_pred)))
-                
-                # Ambil baris terakhir dari sequence sebagai dasar
-                new_row = current_seq[-1].copy()
-                
-                # Ganti nilai fitur JumlahTerjual dengan hasil prediksi yang sudah diskalakan
-                y_pred_scaled_for_input = target_scaler.transform([[y_pred]])[0][0]
-                new_row[selected_features.index("JumlahTerjual")] = y_pred_scaled_for_input
-                
-                # Update sequence
-                current_seq = np.vstack((current_seq[1:], new_row))
-                
-                # Tambah tanggal
-                date += timedelta(days=7)
-                dates.append(date)
-
-            # Buat dataframe hasil forecast
-            df_result = pd.DataFrame({"Tanggal": dates, "Forecast": future})
-            st.dataframe(df_result)
-        else:
-            st.error("Model tidak ditemukan.")
-    else:
-        st.warning("Data belum cukup panjang.")
-
-# === STRATEGI ===
 elif st.session_state.page == "Strategi":
-    st.title("📦 Strategi Stok Minggu Depan")
+    st.title("📦 Strategi Pengelolaan Stok Produk Minggu Depan")
 
-    st.info("Berikut adalah 10 produk dengan prediksi penjualan tertinggi minggu depan. Disarankan untuk menyiapkan stok lebih banyak agar tidak kehabisan.")
+    st.info("Halaman ini menyajikan produk yang perlu perhatian lebih, baik produk terlaris untuk menjaga stok tetap optimal, maupun produk tidak laku yang membutuhkan promosi untuk menarik perhatian pembeli.")
 
     result = []
 
+    # Loop untuk mendapatkan hasil prediksi dari model untuk setiap produk
     for kode in df['KodeProduk'].unique():
         df_p = df[df['KodeProduk'] == kode].copy()
         if len(df_p) < 11:
@@ -195,23 +146,32 @@ elif st.session_state.page == "Strategi":
             input_seq = X[-10:]
             y_pred_scaled = model.predict(np.expand_dims(input_seq, axis=0))
             y = target_scaler.inverse_transform(y_pred_scaled)[0][0]
-            # Ambil nama produk dari df utama
+            
+            # Jika prediksi penjualan negatif, ubah menjadi 0
+            y = max(y, 0)
+
+            # Ambil nama produk
             nama_produk = df_p['NamaProduk'].iloc[0] if 'NamaProduk' in df_p.columns else "Nama Tidak Diketahui"
             result.append((kode, nama_produk, y))
 
-    # Ambil 10 terbesar
-    result = sorted(result, key=lambda x: x[2], reverse=True)[:10]
+    # Membuat tabs untuk produk terlaris dan tidak laku
+    tab1, tab2 = st.tabs(["Produk Terlaris", "Produk Tidak Laku"])
+    
+    with tab1:
+        st.subheader("10 Produk Teratas (Terlaris)")
+        for i, (kode, nama, val) in enumerate(sorted(result, key=lambda x: x[2], reverse=True)[:10]):
+            rekomendasi = "Siapkan stok tambahan minggu depan."
+            st.markdown(f"""
+            {i+1}. {kode} - {nama} <br> 📈 Prediksi Penjualan: {int(round(val))} produk<br>
+            🛒 <b>Rekomendasi:</b> {rekomendasi}
+            """, unsafe_allow_html=True)
+    
+    with tab2:
+        st.subheader("10 Produk Terbawah (Tidak Laku)")
+        for i, (kode, nama, val) in enumerate(sorted(result, key=lambda x: x[2])[:10]):
+            rekomendasi = "Promosikan produk ini dengan diskon untuk meningkatkan penjualan."
+            st.markdown(f"""
+            {i+1}. {kode} - {nama} <br> 📉 Prediksi Penjualan: {int(round(val))} produk<br>
+            🛒 <b>Rekomendasi:</b> {rekomendasi}
+            """, unsafe_allow_html=True)
 
-    for i, (kode, nama, val) in enumerate(result):
-       st.markdown(
-            f"""
-            <div style='font-size:22px; font-weight:bold; margin-top:20px;'>
-                {i+1}. {kode} - {nama}
-            </div>
-            <div style='font-size:18px; margin-bottom:10px;'>
-                📈 <b>Prediksi Penjualan:</b> {int(round(val))} produk<br>
-                🛒 <b>Rekomendasi:</b> Siapkan stok tambahan minggu depan.
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
