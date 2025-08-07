@@ -178,7 +178,7 @@ elif st.session_state.page == "Forecasting":
 
 # === STRATEGI ===
 elif st.session_state.page == "Strategi":
-    st.title("📦 Strategi Pengelolaan Stok Produk Minggu Depan")
+    st.title("📦 Strategi Produk Minggu Depan")
 
     st.info("Halaman ini menyajikan produk yang perlu perhatian lebih, baik produk terlaris untuk menjaga stok tetap optimal, maupun produk tidak laku yang membutuhkan promosi untuk menarik perhatian pembeli.")
 
